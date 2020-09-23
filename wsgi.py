@@ -46,6 +46,15 @@ def verify_password(have_username, have_password):
         return username
 
 
+@app.route('/healthcheck')
+def healthcheck():
+    return Response(
+        response=json.dumps({'healthy': True}),
+        status=200,
+        mimetype='application/json',
+    )
+
+
 @app.route(
     "/users/<user_name>/projects/<project_name>/roles/<role>", methods=["GET"]
 )
