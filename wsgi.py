@@ -124,7 +124,7 @@ def delete_moc_rolebindings(project_name, user_name, role):
 # @auth.login_required
 def get_moc_project(project_uuid, user_name=None):
     (token, openshift_url) = get_token_and_url()
-    if exists_openshift_project(token, openshift_url, project_uuid):
+    if exists_openshift_project(openshift_api, project_uuid):
         return Response(
             response=json.dumps({"msg": "project exists (" + project_uuid + ")"}),
             status=200,
@@ -157,7 +157,7 @@ def create_moc_project(project_uuid, user_name=None):
             status=400,
             mimetype="application/json",
         )
-    if not exists_openshift_project(token, openshift_url, project_uuid):
+    if not exists_openshift_project(openshift_api, project_uuid):
         project_name = project_uuid
         if "Content-Length" in request.headers:
             req_json = request.get_json(force=True)
@@ -168,7 +168,7 @@ def create_moc_project(project_uuid, user_name=None):
             application.logger.debug("create project json: None")
 
         r = create_openshift_project(
-            token, openshift_url, project_uuid, project_name, user_name
+            openshift_api, project_uuid, project_name, user_name
         )
         if r.status_code == 200 or r.status_code == 201:
             return Response(
@@ -195,8 +195,8 @@ def create_moc_project(project_uuid, user_name=None):
 # @auth.login_required
 def delete_moc_project(project_uuid, user_name=None):
     (token, openshift_url) = get_token_and_url()
-    if exists_openshift_project(token, openshift_url, project_uuid):
-        r = delete_openshift_project(token, openshift_url, project_uuid, user_name)
+    if exists_openshift_project(openshift_api, project_uuid):
+        r = delete_openshift_project(openshift_api, project_uuid)
         if r.status_code == 200 or r.status_code == 201:
             return Response(
                 response=json.dumps({"msg": "project deleted (" + project_uuid + ")"}),
@@ -317,7 +317,7 @@ def delete_moc_user(user_name, full_name=None, id_provider="sso_auth", id_user=N
     user_does_not_exist = 0
     # use case if User exists then delete
     if exists_openshift_user(openshift_api, user_name):
-        r = delete_openshift_user(openshift_api, user_name, full_name)
+        r = delete_openshift_user(openshift_api, user_name)
         if r.status_code != 200 and r.status_code != 201:
             return Response(
                 response=json.dumps(
