@@ -12,6 +12,7 @@ from flask_httpauth import HTTPBasicAuth
 
 import sys
 
+from openshift_api_wrapper import ApiWrapper
 from openshift_rolebindings import *
 from openshift_project import *
 from openshift_identity import *
@@ -23,6 +24,10 @@ serviceaccount = '/var/run/secrets/kubernetes.io/serviceaccount'
 
 with open(f'{serviceaccount}/token') as fd:
     token = fd.read()
+
+openshift_api = ApiWrapper('https://kubernetes.default.svc',
+                           f'{serviceaccount}/ca.crt',
+                           token)
 
 openshift_url = 'kubernetes.default.svc'
 
@@ -219,7 +224,7 @@ def delete_moc_project(project_uuid, user_name=None):
 def get_moc_user(user_name, full_name=None, id_provider="sso_auth", id_user=None):
     (token, openshift_url) = get_token_and_url()
     r = None
-    if exists_openshift_user(token, openshift_url, user_name):
+    if exists_openshift_user(openshift_api, user_name):
         return Response(
             response=json.dumps({"msg": "user (" + user_name + ") exists"}),
             status=200,
@@ -240,8 +245,8 @@ def create_moc_user(user_name, full_name=None, id_provider="sso_auth", id_user=N
     # full name in payload
     user_exists = 0x00
     # use case if User doesn't exist, then create
-    if not exists_openshift_user(token, openshift_url, user_name):
-        r = create_openshift_user(token, openshift_url, user_name, full_name)
+    if not exists_openshift_user(openshift_api, user_name):
+        r = create_openshift_user(openshift_api, user_name, full_name)
         if r.status_code != 200 and r.status_code != 201:
             return Response(
                 response=json.dumps(
@@ -311,8 +316,8 @@ def delete_moc_user(user_name, full_name=None, id_provider="sso_auth", id_user=N
     r = None
     user_does_not_exist = 0
     # use case if User exists then delete
-    if exists_openshift_user(token, openshift_url, user_name):
-        r = delete_openshift_user(token, openshift_url, user_name, full_name)
+    if exists_openshift_user(openshift_api, user_name):
+        r = delete_openshift_user(openshift_api, user_name, full_name)
         if r.status_code != 200 and r.status_code != 201:
             return Response(
                 response=json.dumps(
