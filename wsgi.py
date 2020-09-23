@@ -19,6 +19,12 @@ from openshift_user import *
 
 application = Flask(__name__)
 auth = HTTPBasicAuth()
+serviceaccount = '/var/run/secrets/kubernetes.io/serviceaccount'
+
+with open(f'{serviceaccount}/token') as fd:
+    token = fd.read()
+
+openshift_url = 'kubernetes.default.svc'
 
 if __name__ != "__main__":
     gunicorn_logger = logging.getLogger("gunicorn.error")
@@ -26,27 +32,19 @@ if __name__ != "__main__":
     application.logger.setLevel(gunicorn_logger.level)
 
 
-def get_user_token():
-    with open("/var/run/secrets/kubernetes.io/serviceaccount/token", "r") as file:
-        token = file.read()
-        return token
-    return ""
-
-
 def get_token_and_url():
-    token = get_user_token()
-    openshift_url = os.environ["OPENSHIFT_URL"]
     return (token, openshift_url)
 
 
 @auth.verify_password
-def verify_password(username, password):
-    # This file is
-    user_str = ""
-    with open("/app/auth/users", "r") as f:
-        user_cred = f.read()
-    user = user_str.split(" ", 1)
-    if username == user[0] and password == user[1]:
+def verify_password(have_username, have_password):
+    with open('/app/auth/ACCT_MGT_USER') as fd:
+        username = fd.read()
+
+    with open('/app/auth/ACCT_MGT_PASS') as fd:
+        password = fd.read()
+
+    if have_username == username and have_password == password:
         return username
 
 
