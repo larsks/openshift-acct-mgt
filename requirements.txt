@@ -1,5 +1,5 @@
-setuptools>=18.5
-gunicorn
-Flask
+flask
+flask_httpauth
+flask_restful
 kubernetes
-openshift
+requests
