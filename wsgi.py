@@ -178,9 +178,10 @@ def create_moc_project(project_uuid, user_name=None):
                 status=200,
                 mimetype="app/json",
             )
+
         return Response(
             response=json.dumps(
-                {"msg": "project unabled to be created (" + project_uuid + ")"}
+                {"msg": f"unable to create project {project_uuid}: {r.text}"},
             ),
             status=400,
             mimetype="app/json",
