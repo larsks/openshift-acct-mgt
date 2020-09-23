@@ -36,7 +36,7 @@ def create_openshift_project(api, project_uuid, project_name, user_name):
 
     payload = {
         "kind": "Project",
-        "apiVersion": "v1",
+        "apiVersion": "project.openshift.io/v1",
         "metadata": {
             "name": project_uuid,
             "annotations": {
